@@ -126,3 +126,21 @@ async function calculateSummary() {
         showToast('❌ ไม่สามารถดึงข้อมูลสรุปได้');
     }
 }
+
+// ฟังก์ชันสำหรับล้างข้อมูลกลุ่มปัจจุบันและกลับไปหน้าแรก
+function clearGroupAndGoHome() {
+    // ล้างข้อมูลใน LocalStorage
+    localStorage.removeItem('currentGroupId');
+    localStorage.removeItem('groupMembers');
+    localStorage.removeItem('groupName');
+    
+    // รีเซ็ตตัวแปร
+    currentGroupId = null;
+    
+    // ล้างค่าในช่องกรอกข้อมูลหน้าแรก (เผื่อไว้)
+    document.getElementById('group-name').value = '';
+    document.getElementById('group-members').value = '';
+    
+    // สลับกลับไปหน้า Home
+    switchSection('home');
+}
