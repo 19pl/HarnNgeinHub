@@ -1,112 +1,133 @@
+/* กำหนดตัวแปรสีหลักๆ ไว้ที่ :root เพื่อให้เรียกใช้ได้ง่ายและเปลี่ยนธีมสะดวก */
 :root {
-    --bg-color: #f4f7f6;
-    --card-bg: #ffffff;
-    --text-color: #333333;
-    --primary: #4CAF50;
-    --primary-hover: #45a049;
-    --secondary: #2196F3;
-    --secondary-hover: #1976D2;
-    --border: #e0e0e0;
+    --bg-color: #f4f7f6;         /* สีพื้นหลังหน้าเว็บ (ธีมสว่าง) */
+    --card-bg: #ffffff;          /* สีพื้นหลังของกล่อง (Card) */
+    --text-color: #333333;       /* สีตัวอักษรปกติ */
+    --primary: #4CAF50;          /* สีหลักของแอป (สีเขียว) */
+    --primary-hover: #45a049;    /* สีเขียวเข้มตอนเอาเมาส์ชี้ */
+    --secondary: #2196F3;        /* สีรองของแอป (สีฟ้า) */
+    --secondary-hover: #1976D2;  /* สีฟ้าเข้มตอนเอาเมาส์ชี้ */
+    --border: #e0e0e0;           /* สีเส้นขอบ */
 }
 
+/* กำหนดตัวแปรสีสำหรับ Dark Mode เมื่อ body มีคลาส .dark-mode */
 body.dark-mode {
-    --bg-color: #121212;
-    --card-bg: #1e1e1e;
-    --text-color: #f1f1f1;
-    --border: #333;
+    --bg-color: #121212;         /* สีพื้นหลังสีดำ */
+    --card-bg: #1e1e1e;          /* สีพื้นหลังกล่องสีเทาเข้ม */
+    --text-color: #f1f1f1;       /* สีตัวอักษรสีขาว */
+    --border: #333;              /* สีเส้นขอบสีเทาเข้ม */
 }
 
+/* รีเซ็ตค่าเริ่มต้น (Reset CSS) ให้ทุกส่วนคำนวณความกว้าง/สูงแบบรวมขอบ (border-box) */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    font-family: 'Prompt', 'Poppins', sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    transition: all 0.3s ease;
+    font-family: 'Prompt', 'Poppins', sans-serif; /* ใช้ฟอนต์ Prompt เป็นหลัก */
+    background-color: var(--bg-color); /* ใช้ตัวแปรสีพื้นหลัง */
+    color: var(--text-color); /* ใช้ตัวแปรสีตัวอักษร */
+    transition: all 0.3s ease; /* เพิ่มแอนิเมชันให้เวลาเปลี่ยนโหมด (สว่าง/มืด) สมูทขึ้น */
 }
 
+/* จัดกึ่งกลางหน้าจอและกำหนดความกว้างสูงสุดให้แอป (ดูดีทั้งบนมือถือและคอม) */
 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
 
+/* ส่วนหัวของแอป */
 header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; /* จัดเรียงแนวนอน */
+    justify-content: space-between; /* กระจายเนื้อหาซ้ายขวา */
+    align-items: center; /* จัดให้อยู่กึ่งกลางแนวตั้ง */
     margin-bottom: 20px;
 }
 
 header h1 { font-size: 1.5rem; color: var(--primary); }
 
+/* สไตล์พื้นฐานของปุ่ม */
 button {
     cursor: pointer;
     border: none;
-    border-radius: 8px;
+    border-radius: 8px; /* ขอบโค้งมน */
     padding: 10px 15px;
     font-family: inherit;
     font-weight: 600;
-    transition: transform 0.2s, background-color 0.3s;
+    transition: transform 0.2s, background-color 0.3s; /* แอนิเมชันตอนกดและเปลี่ยนสี */
 }
+/* เอฟเฟกต์ตอนกดปุ่มให้ดูยุบลงไปเล็กน้อย */
 button:active { transform: scale(0.95); }
 
+/* ปุ่มหลัก (สีเขียว) */
 .btn-primary { background-color: var(--primary); color: white; width: 100%; font-size: 1.1rem; padding: 12px;}
 .btn-primary:hover { background-color: var(--primary-hover); }
 
+/* ปุ่มรอง (สีฟ้า) */
 .btn-secondary { background-color: var(--secondary); color: white; width: 100%; padding: 12px;}
 .btn-secondary:hover { background-color: var(--secondary-hover); }
 
+/* ระยะห่างด้านบน (Margin Top) 15px */
 .mt-1 { margin-top: 15px; }
 
+/* กล่องเนื้อหาหลัก (Card) */
 .card {
     background: var(--card-bg);
     border-radius: 12px;
     padding: 20px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* เงาบางๆ ให้ดูลอยขึ้นมา */
     margin-bottom: 20px;
-    display: none; /* Hidden by default */
-    animation: fadeIn 0.4s ease;
+    display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น (จะแสดงผ่าน JS) */
+    animation: fadeIn 0.4s ease; /* แอนิเมชันให้กล่องค่อยๆ โผล่ขึ้นมา */
 }
+/* คลาส active สำหรับสั่งให้แสดงกล่องนั้นๆ */
 .card.active { display: block; }
 
+/* แอนิเมชันค่อยๆ โผล่ขึ้นมาและเลื่อนขึ้น (Fade In & Slide Up) */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+/* กลุ่มช่องกรอกข้อมูล */
 .input-group { margin-bottom: 15px; }
 .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
+/* ช่องกรอกข้อความและช่องตัวเลือก */
 .input-group input, .input-group select {
     width: 100%;
     padding: 10px;
     border: 1px solid var(--border);
     border-radius: 6px;
-    background: var(--card-bg);
+    background: var(--card-bg); /* ให้พื้นหลังช่องกรอกตรงกับธีม */
     color: var(--text-color);
     font-family: inherit;
 }
 
+/* กล่องสรุปผลรวม (แถบสีเขียวอ่อน) */
 .summary-box {
-    background: rgba(76, 175, 80, 0.1);
+    background: rgba(76, 175, 80, 0.1); /* สีเขียวโปร่งใส */
     padding: 15px;
     border-radius: 8px;
     margin: 15px 0;
-    border-left: 5px solid var(--primary);
+    border-left: 5px solid var(--primary); /* เส้นทึบด้านซ้ายให้ดูโดดเด่น */
 }
+/* ตัวหนังสือที่เน้น (ยอดเงิน) */
 .highlight { font-weight: bold; font-size: 1.2rem; }
 
+/* รายการสรุปและประวัติ */
 .transactions-list, .history-list { list-style: none; margin-top: 10px; }
+/* รายการใครต้องโอนให้ใคร ให้แต่ละบรรทัดเป็นกล่องแยกกัน */
 .transactions-list li {
     background: var(--card-bg);
     border: 1px solid var(--border);
     padding: 12px;
     margin-bottom: 8px;
     border-radius: 8px;
-    display: flex;
-    justify-content: space-between;
+    display: flex; /* จัดเรียงแนวนอน */
+    justify-content: space-between; /* ให้ชื่ออยู่ซ้าย จำนวนเงินอยู่ขวา */
     align-items: center;
 }
+/* รายการประวัติการจ่ายเงิน (เรียบๆ มีแค่เส้นคั่นล่าง) */
 .history-list li { font-size: 0.9rem; padding: 8px 0; border-bottom: 1px solid var(--border); }
 
-/* Toast */
+/* กล่องแจ้งเตือน (Toast) ที่เด้งขึ้นมากลางจอด้านบน */
 .toast {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    background: var(--text-color); color: var(--card-bg);
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%); /* จัดกึ่งกลางหน้าจอแนวนอน */
+    background: var(--text-color); color: var(--card-bg); /* สีตัดกับพื้นหลังของธีม */
     padding: 10px 20px; border-radius: 30px; font-weight: 600;
-    z-index: 1000; opacity: 1; transition: opacity 0.5s;
+    z-index: 1000; opacity: 1; transition: opacity 0.5s; /* แสดงอยู่บนสุดและมีเอฟเฟกต์ Fade */
 }
+/* สถานะซ่อน Toast (โปร่งใสและกดไม่โดน) */
 .toast.hidden { opacity: 0; pointer-events: none; }

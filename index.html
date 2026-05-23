@@ -1,76 +1,105 @@
+<!-- กำหนดประเภทของเอกสารเป็น HTML5 -->
 <!DOCTYPE html>
+<!-- กำหนดภาษาของหน้าเว็บเป็นภาษาไทย -->
 <html lang="th">
 <head>
+    <!-- กำหนดการเข้ารหัสตัวอักษรเป็น UTF-8 รองรับภาษาไทย -->
     <meta charset="UTF-8">
+    <!-- ทำให้เว็บรองรับการแสดงผลบนอุปกรณ์มือถือ (Responsive) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HarnNgeinHub | หารเงินในกลุ่มเพื่อน</title>
+    <!-- นำเข้าฟอนต์ Poppins และ Prompt จาก Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- นำเข้าไฟล์สไตล์ CSS สำหรับตกแต่งหน้าเว็บ -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- คอนเทนเนอร์หลักที่ครอบเนื้อหาทั้งหมดไว้ตรงกลาง -->
     <div class="container">
+        <!-- ส่วนหัวของแอปพลิเคชัน -->
         <header>
             <h1>💸 Split Money</h1>
+            <!-- ปุ่มสำหรับสลับธีม สว่าง/มืด -->
             <button id="theme-toggle">🌙 Dark Mode</button>
         </header>
 
+        <!-- กล่องแจ้งเตือน (Toast) ซ่อนไว้ก่อน จะแสดงเมื่อมีข้อความแจ้งเตือน -->
         <div id="toast" class="toast hidden"></div>
 
+        <!-- ส่วนที่ 1: หน้าสำหรับสร้างกลุ่มใหม่ -->
         <section id="home-section" class="card active">
             <h2>สร้างกลุ่มใหม่</h2>
             <div class="input-group">
                 <label>ชื่อกลุ่ม (เช่น ไปกินหมูกระทะ):</label>
+                <!-- ช่องกรอกชื่อกลุ่ม -->
                 <input type="text" id="group-name" placeholder="ระบุชื่อกลุ่ม">
             </div>
             <div class="input-group">
                 <label>รายชื่อสมาชิก (คั่นด้วยลูกน้ำ ','):</label>
+                <!-- ช่องกรอกรายชื่อสมาชิก โดยให้คั่นด้วยลูกน้ำ -->
                 <input type="text" id="group-members" placeholder="เช่น A, B, C, D">
             </div>
+            <!-- ปุ่มกดเพื่อสร้างกลุ่ม จะเรียกใช้ฟังก์ชัน createGroup() -->
             <button onclick="createGroup()" class="btn-primary">สร้างกลุ่มเลย!</button>
         </section>
 
+        <!-- ส่วนที่ 2: หน้าสำหรับจัดการและเพิ่มรายการค่าใช้จ่าย (ซ่อนไว้ตอนเริ่มต้น) -->
         <section id="expense-section" class="card hidden">
+            <!-- แสดงชื่อกลุ่มที่สร้าง -->
             <h2 id="display-group-name">ชื่อกลุ่ม</h2>
             
             <div class="expense-form">
                 <h3>เพิ่มรายการจ่ายเงิน</h3>
                 <div class="input-group">
                     <label>ใครเป็นคนจ่าย?</label>
+                    <!-- ตัวเลือก (Dropdown) สำหรับเลือกคนที่จ่ายเงิน -->
                     <select id="payer-select"></select>
                 </div>
                 <div class="input-group">
                     <label>จำนวนเงิน (บาท):</label>
+                    <!-- ช่องกรอกจำนวนเงิน -->
                     <input type="number" id="amount" placeholder="0.00">
                 </div>
                 <div class="input-group">
                     <label>รายละเอียด:</label>
+                    <!-- ช่องกรอกรายละเอียดของค่าใช้จ่าย -->
                     <input type="text" id="detail" placeholder="เช่น ค่าอาหาร, ค่าที่จอดรถ">
                 </div>
+                <!-- ปุ่มสำหรับบันทึกรายการจ่ายเงิน จะเรียกใช้ฟังก์ชัน addExpense() -->
                 <button onclick="addExpense()" class="btn-primary">บันทึกรายการ</button>
             </div>
 
+            <!-- ปุ่มสำหรับไปหน้าสรุปยอด จะเรียกใช้ฟังก์ชัน calculateSummary() -->
             <button onclick="calculateSummary()" class="btn-secondary mt-1">📊 สรุปยอดและคำนวณเงิน</button>
             
+            <!-- ปุ่มสำหรับล้างข้อมูลและกลับไปหน้าแรก -->
             <button onclick="clearGroupAndGoHome()" class="btn-secondary mt-1" style="background-color: #ff5252;">🚪 สร้างกลุ่มใหม่ / ล้างข้อมูล</button>
         </section>
 
+        <!-- ส่วนที่ 3: หน้าสรุปผลการหารเงิน (ซ่อนไว้ตอนเริ่มต้น) -->
         <section id="summary-section" class="card hidden">
             <h2>สรุปการหารเงิน</h2>
             <div class="summary-box">
+                <!-- แสดงยอดรวมค่าใช้จ่ายทั้งหมด -->
                 <p>💰 ยอดรวมทั้งหมด: <span id="sum-total" class="highlight">0</span> บาท</p>
+                <!-- แสดงค่าเฉลี่ยที่แต่ละคนต้องจ่าย -->
                 <p>👨‍👩‍👧‍👦 เฉลี่ยคนละ: <span id="sum-per-person" class="highlight">0</span> บาท</p>
             </div>
             
             <h3>รายการใครต้องโอนให้ใคร</h3>
+            <!-- รายการแสดงผลว่าใครต้องจ่ายใคร -->
             <ul id="transactions-list" class="transactions-list"></ul>
             
             <h3>ประวัติการจ่าย</h3>
+            <!-- รายการแสดงประวัติการจ่ายเงินที่ถูกบันทึกไว้ -->
             <ul id="expense-history" class="history-list"></ul>
 
+            <!-- ปุ่มโหลดหน้าเว็บใหม่เพื่อกลับไปหน้าแรกสุด -->
             <button onclick="location.reload()" class="btn-secondary mt-1">🏠 กลับหน้าแรก</button>
         </section>
     </div>
 
+    <!-- นำเข้าไฟล์ JavaScript ที่ควบคุมการทำงานของหน้าเว็บ -->
     <script src="app.js"></script>
 </body>
 </html>
