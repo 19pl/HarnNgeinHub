@@ -28,8 +28,12 @@
                 <input type="text" id="group-name" placeholder="ระบุชื่อกลุ่ม">
             </div>
             <div class="input-group">
-                <label>รายชื่อสมาชิก (คั่นด้วยลูกน้ำ ','):</label>
-                <input type="text" id="group-members" placeholder="เช่น A, B, C, D">
+                <label>เพิ่มสมาชิก:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-member-name" placeholder="ชื่อสมาชิก">
+                    <button onclick="addMemberToList()" class="btn-secondary" style="width: auto; white-space: nowrap;">+ เพิ่ม</button>
+                </div>
+                <ul id="member-list-preview" class="member-list-preview"></ul>
             </div>
             <button onclick="createGroup()" class="btn-primary">สร้างกลุ่มเลย!</button>
         </section>
@@ -79,6 +83,6 @@
         </section>
     </div>
 
-    <script src="app.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
