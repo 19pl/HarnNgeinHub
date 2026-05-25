@@ -7,4 +7,4 @@ database.json
 data_flow.md
 SKILL.md
 
-.env
+backend/.env
