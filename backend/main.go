@@ -34,7 +34,7 @@ func main() {
 	}
 
 	log.Printf("Server running locally on http://localhost:%s", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
+	if err := http.ListenAndServe(":"+port, middleware.CORS(r)); err != nil {
 		log.Fatal("Failed to start server: ", err)
 	}
 }
