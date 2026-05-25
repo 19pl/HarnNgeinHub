@@ -1,5 +1,5 @@
 // กำหนด URL ของ API ฝั่ง Backend
-const API_URL = 'http://localhost:3000'; 
+const API_URL = 'http://localhost:8080'; 
 let currentGroupId = localStorage.getItem('currentGroupId') || null;
 let tempMembers = [];
 
@@ -12,14 +12,34 @@ const sections = {
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    
     // Check Dark Mode
-    if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+    if(localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        themeToggleBtn.innerHTML = '☀️ White Mode';
+    } else {
+        themeToggleBtn.innerHTML = '🌙 Dark Mode';
+    }
     
     // Theme Toggle
-    document.getElementById('theme-toggle').addEventListener('click', () => {
+    themeToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDark);
+        themeToggleBtn.innerHTML = isDark ? '☀️ White Mode' : '🌙 Dark Mode';
     });
+
+    // Enter key to add member
+    const newMemberInput = document.getElementById('new-member-name');
+    if (newMemberInput) {
+        newMemberInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addMemberToList();
+            }
+        });
+    }
 
     if (currentGroupId) loadGroupData();
     else switchSection('home');

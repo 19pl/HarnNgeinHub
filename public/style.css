@@ -48,6 +48,12 @@ button {
 }
 button:active { transform: scale(0.95); }
 
+#theme-toggle {
+    background-color: var(--card-bg);
+    color: var(--text-color);
+    border: 1px solid var(--border);
+}
+
 .btn-primary { background-color: var(--primary); color: white; width: 100%; font-size: 1.1rem; padding: 12px;}
 .btn-primary:hover { background-color: var(--primary-hover); }
 
@@ -142,4 +148,14 @@ button:active { transform: scale(0.95); }
 }
 .btn-delete:hover {
     background-color: #e04343;
+}
+
+/* แก้ไขสีพื้นหลัง Autofill ของ Browser ในโหมดกลางคืน */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--card-bg) inset !important;
+    -webkit-text-fill-color: var(--text-color) !important;
+    transition: background-color 5000s ease-in-out 0s;
 }
