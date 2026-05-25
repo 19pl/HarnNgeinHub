@@ -3,37 +3,46 @@ package database
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var Client *mongo.Client
+// DB is the exported database instance
 var DB *mongo.Database
 
-// Connect establishes a connection to MongoDB Atlas
-func Connect(uri, dbName string) {
+// ConnectDB initializes the MongoDB connection
+func ConnectDB() {
+	uri := os.Getenv("MONGODB_URI")
+	if uri == "" {
+		log.Fatal("MONGODB_URI environment variable is missing in .env file")
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	clientOpts := options.Client().ApplyURI(uri)
-	client, err := mongo.Connect(ctx, clientOpts)
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
+		log.Fatal("MongoDB connection error: ", err)
 	}
 
-	// Ping to verify connection
-	if err = client.Ping(ctx, nil); err != nil {
-		log.Fatalf("Failed to ping MongoDB: %v", err)
+	// Ping the database to verify connection
+	err = client.Ping(ctx, nil)
+	if err != nil {
+		log.Fatal("Could not ping MongoDB: ", err)
 	}
 
-	Client = client
-	DB = client.Database(dbName)
-	log.Println("✅ Connected to MongoDB Atlas:", dbName)
+	// Replace "harnngein_db" with your actual database name if different
+	DB = client.Database("harnngein_db")
+	log.Println("Successfully connected to MongoDB Atlas!")
 }
 
-// GetCollection returns a MongoDB collection by name
-func GetCollection(name string) *mongo.Collection {
-	return DB.Collection(name)
+// GetCollection is the helper function your controllers are looking for
+func GetCollection(collectionName string) *mongo.Collection {
+	if DB == nil {
+		log.Fatal("Database connection is not initialized yet!")
+	}
+	return DB.Collection(collectionName)
 }

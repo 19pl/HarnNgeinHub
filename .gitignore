@@ -6,3 +6,5 @@ database.json
  # .md files
 data_flow.md
 SKILL.md
+
+.env
