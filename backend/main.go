@@ -22,6 +22,7 @@ func main() {
 
 	// 3. Initialize the Gorilla Mux Router
 	r := mux.NewRouter()
+	r.Use(mux.CORSMethodMiddleware)
 
 	// 4. Pass the router to your Setup function in routes.go
 	routes.Setup(r)
