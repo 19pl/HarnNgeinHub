@@ -1,6 +1,7 @@
 // กำหนด URL ของ API ฝั่ง Backend
 const API_URL = 'http://localhost:3000'; 
 let currentGroupId = localStorage.getItem('currentGroupId') || null;
+let tempMembers = [];
 
 // UI Elements
 const sections = {
@@ -38,27 +39,51 @@ function showToast(message) {
     setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
+// --- Member Management ---
+function addMemberToList() {
+    const input = document.getElementById('new-member-name');
+    const name = input.value.trim();
+    if (!name) return showToast('❌ กรุณากรอกชื่อสมาชิก');
+    if (tempMembers.includes(name)) return showToast('❌ ชื่อสมาชิกซ้ำ');
+    
+    tempMembers.push(name);
+    input.value = '';
+    renderMemberList();
+}
+
+function removeMemberFromList(name) {
+    tempMembers = tempMembers.filter(m => m !== name);
+    renderMemberList();
+}
+
+function renderMemberList() {
+    const list = document.getElementById('member-list-preview');
+    list.innerHTML = tempMembers.map(m => `
+        <li>
+            <span>${m}</span>
+            <button onclick="removeMemberFromList('${m}')" class="btn-delete">ลบ</button>
+        </li>
+    `).join('');
+}
+
 // --- API Calls ---
 
 async function createGroup() {
     const name = document.getElementById('group-name').value;
-    const membersRaw = document.getElementById('group-members').value;
     
-    if (!name || !membersRaw) return showToast('❌ กรุณากรอกข้อมูลให้ครบถ้วน');
-    
-    const members = membersRaw.split(',').map(m => m.trim()).filter(m => m);
+    if (!name || tempMembers.length === 0) return showToast('❌ กรุณากรอกชื่อกลุ่มและเพิ่มสมาชิกให้ครบถ้วน');
 
     try {
         const res = await fetch(`${API_URL}/groups`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, members })
+            body: JSON.stringify({ name, members: tempMembers })
         });
         const data = await res.json();
         
-        currentGroupId = data.id;
+        currentGroupId = data.id || data._id;
         localStorage.setItem('currentGroupId', currentGroupId);
-        localStorage.setItem('groupMembers', JSON.stringify(members));
+        localStorage.setItem('groupMembers', JSON.stringify(tempMembers));
         localStorage.setItem('groupName', name);
         
         showToast('✅ สร้างกลุ่มสำเร็จ!');
@@ -137,9 +162,12 @@ function clearGroupAndGoHome() {
     localStorage.removeItem('groupName');
     
     currentGroupId = null;
+    tempMembers = [];
     
     document.getElementById('group-name').value = '';
-    document.getElementById('group-members').value = '';
+    const newMemberInput = document.getElementById('new-member-name');
+    if (newMemberInput) newMemberInput.value = '';
+    renderMemberList();
     
     switchSection('home');
 }
