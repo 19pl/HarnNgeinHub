@@ -1,5 +1,5 @@
 // กำหนด URL ของ API ฝั่ง Backend
-const API_URL = 'http://localhost:8080'; 
+const API_URL = 'http://localhost:5000/api'; 
 let currentGroupId = localStorage.getItem('currentGroupId') || null;
 let tempMembers = [];
 
