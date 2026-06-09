@@ -1,5 +1,5 @@
 // กำหนด URL ของ API ฝั่ง Backend
-const API_URL = '/api'; 
+const API_URL = '/api';
 let currentGroupId = localStorage.getItem('currentGroupId') || null;
 let tempMembers = [];
 
@@ -13,7 +13,7 @@ const sections = {
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
     const themeToggleBtn = document.getElementById('theme-toggle');
-    
+
     // Check Dark Mode
     if(localStorage.getItem('darkMode') === 'true') {
         document.body.classList.add('dark-mode');
@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         themeToggleBtn.innerHTML = '🌙 Dark Mode';
     }
-    
+
     // Theme Toggle
     themeToggleBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
@@ -59,13 +59,27 @@ function showToast(message) {
     setTimeout(() => toast.classList.add('hidden'), 3000);
 }
 
+// ดึง Group JWT Token จาก localStorage
+function getGroupToken() {
+    return localStorage.getItem('groupToken') || null;
+}
+
+// สร้าง Headers สำหรับ API request พร้อม Authorization token
+function getAuthHeaders() {
+    const token = getGroupToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    };
+}
+
 // --- Member Management ---
 function addMemberToList() {
     const input = document.getElementById('new-member-name');
     const name = input.value.trim();
     if (!name) return showToast('❌ กรุณากรอกชื่อสมาชิก');
     if (tempMembers.includes(name)) return showToast('❌ ชื่อสมาชิกซ้ำ');
-    
+
     tempMembers.push(name);
     input.value = '';
     renderMemberList();
@@ -89,8 +103,8 @@ function renderMemberList() {
 // --- API Actions ---
 
 async function createGroup() {
-    const name = document.getElementById('group-name').value;
-    
+    const name = document.getElementById('group-name').value.trim();
+
     if (!name || tempMembers.length === 0) return showToast('❌ กรุณากรอกชื่อกลุ่มและเพิ่มสมาชิกให้ครบถ้วน');
 
     try {
@@ -100,18 +114,20 @@ async function createGroup() {
             body: JSON.stringify({ name, members: tempMembers })
         });
         const data = await res.json();
-        
+
         if (!res.ok) throw new Error(data.error);
 
+        // บันทึก Group ID และ JWT Token ลงใน localStorage
         currentGroupId = data.id;
         localStorage.setItem('currentGroupId', currentGroupId);
+        localStorage.setItem('groupToken', data.token);   // 🔐 เก็บ token
         localStorage.setItem('groupMembers', JSON.stringify(data.members));
         localStorage.setItem('groupName', data.name);
-        
+
         showToast('✅ สร้างกลุ่มสำเร็จและบันทึกลงฐานข้อมูลแล้ว!');
         loadGroupData();
     } catch (error) {
-        showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ Database');
+        showToast(`❌ ${error.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อ Database'}`);
     }
 }
 
@@ -119,43 +135,50 @@ async function createGroup() {
 function loadGroupData() {
     const name = localStorage.getItem('groupName');
     const members = JSON.parse(localStorage.getItem('groupMembers')) || [];
-    
+
     document.getElementById('display-group-name').textContent = `กลุ่ม: ${name}`;
-    
+
     const select = document.getElementById('payer-select');
     select.innerHTML = members.map(m => `<option value="${m}">${m}</option>`).join('');
-    
+
     switchSection('expense');
 }
 
 async function addExpense() {
     const payer = document.getElementById('payer-select').value;
     const amount = Number(document.getElementById('amount').value);
-    const detail = document.getElementById('detail').value;
+    const detail = document.getElementById('detail').value.trim();
 
-    if (!amount || amount <= 0) return showToast('❌ กรุณากรอกจำนวนเงินให้ถูกต้อง');
+    if (!amount || amount <= 0 || !isFinite(amount)) return showToast('❌ กรุณากรอกจำนวนเงินให้ถูกต้อง (ต้องเป็นตัวเลขที่มากกว่า 0)');
 
     try {
         const res = await fetch(`${API_URL}/expenses`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: getAuthHeaders(), // 🔐 ส่ง JWT token
             body: JSON.stringify({ groupId: currentGroupId, payer, amount, detail })
         });
-        
-        if (!res.ok) throw new Error('Failed to add expense');
-        
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
         showToast('✅ บันทึกรายการสำเร็จ!');
         document.getElementById('amount').value = '';
         document.getElementById('detail').value = '';
     } catch (error) {
-        showToast('❌ เกิดข้อผิดพลาดในการบันทึก');
+        showToast(`❌ ${error.message || 'เกิดข้อผิดพลาดในการบันทึก'}`);
     }
 }
 
 async function calculateSummary() {
     try {
-        const res = await fetch(`${API_URL}/summary/${currentGroupId}`);
-        if (!res.ok) throw new Error('Failed to fetch summary');
+        const res = await fetch(`${API_URL}/summary/${currentGroupId}`, {
+            headers: getAuthHeaders(), // 🔐 ส่ง JWT token
+        });
+
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error);
+        }
         const data = await res.json();
 
         document.getElementById('sum-total').textContent = data.totalExpense.toLocaleString();
@@ -165,35 +188,35 @@ async function calculateSummary() {
         if (data.transactions.length === 0) {
             list.innerHTML = '<li>🎉 ไม่มีใครติดหนี้ใคร! ทุกคนจ่ายเท่ากันแล้ว</li>';
         } else {
-            list.innerHTML = data.transactions.map(t => 
+            list.innerHTML = data.transactions.map(t =>
                 `<li><span><b>${t.from}</b> โอนให้ <b>${t.to}</b></span> <span class="highlight">${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿</span></li>`
             ).join('');
         }
 
         const historyList = document.getElementById('expense-history');
-        historyList.innerHTML = data.expenses.map(e => 
+        historyList.innerHTML = data.expenses.map(e =>
             `<li>${e.payer} จ่าย ${e.amount.toLocaleString()} ฿ (${e.detail || 'ไม่ระบุ'})</li>`
         ).join('');
 
         switchSection('summary');
     } catch (error) {
-        showToast('❌ ไม่สามารถดึงข้อมูลสรุปจาก Database ได้');
+        showToast(`❌ ${error.message || 'ไม่สามารถดึงข้อมูลสรุปจาก Database ได้'}`);
     }
 }
 
 function clearGroupAndGoHome() {
     localStorage.removeItem('currentGroupId');
+    localStorage.removeItem('groupToken');    // 🔐 ลบ token ด้วย
     localStorage.removeItem('groupMembers');
     localStorage.removeItem('groupName');
-    // Note: We don't delete expenses from Database here, just reset local state to create new group.
-    
+
     currentGroupId = null;
     tempMembers = [];
-    
+
     document.getElementById('group-name').value = '';
     const newMemberInput = document.getElementById('new-member-name');
     if (newMemberInput) newMemberInput.value = '';
     renderMemberList();
-    
+
     switchSection('home');
 }
