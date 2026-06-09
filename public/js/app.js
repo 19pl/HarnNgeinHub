@@ -1,9 +1,5 @@
-// LocalStorage keys:
-// - currentGroupId
-// - groupName
-// - groupMembers
-// - expenses (array of objects)
-
+// กำหนด URL ของ API ฝั่ง Backend
+const API_URL = '/api'; 
 let currentGroupId = localStorage.getItem('currentGroupId') || null;
 let tempMembers = [];
 
@@ -90,21 +86,33 @@ function renderMemberList() {
     `).join('');
 }
 
-// --- Local Actions ---
+// --- API Actions ---
 
-function createGroup() {
+async function createGroup() {
     const name = document.getElementById('group-name').value;
     
     if (!name || tempMembers.length === 0) return showToast('❌ กรุณากรอกชื่อกลุ่มและเพิ่มสมาชิกให้ครบถ้วน');
 
-    currentGroupId = Date.now().toString();
-    localStorage.setItem('currentGroupId', currentGroupId);
-    localStorage.setItem('groupMembers', JSON.stringify(tempMembers));
-    localStorage.setItem('groupName', name);
-    localStorage.setItem('expenses', JSON.stringify([]));
-    
-    showToast('✅ สร้างกลุ่มสำเร็จ!');
-    loadGroupData();
+    try {
+        const res = await fetch(`${API_URL}/groups`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, members: tempMembers })
+        });
+        const data = await res.json();
+        
+        if (!res.ok) throw new Error(data.error);
+
+        currentGroupId = data.id;
+        localStorage.setItem('currentGroupId', currentGroupId);
+        localStorage.setItem('groupMembers', JSON.stringify(data.members));
+        localStorage.setItem('groupName', data.name);
+        
+        showToast('✅ สร้างกลุ่มสำเร็จและบันทึกลงฐานข้อมูลแล้ว!');
+        loadGroupData();
+    } catch (error) {
+        showToast('❌ เกิดข้อผิดพลาดในการเชื่อมต่อ Database');
+    }
 }
 
 // โหลดและแสดงข้อมูลของกลุ่มบนหน้าจัดการค่าใช้จ่าย
@@ -120,99 +128,64 @@ function loadGroupData() {
     switchSection('expense');
 }
 
-function addExpense() {
+async function addExpense() {
     const payer = document.getElementById('payer-select').value;
     const amount = Number(document.getElementById('amount').value);
     const detail = document.getElementById('detail').value;
 
     if (!amount || amount <= 0) return showToast('❌ กรุณากรอกจำนวนเงินให้ถูกต้อง');
 
-    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-    expenses.push({ payer, amount, detail, date: new Date().toISOString() });
-    localStorage.setItem('expenses', JSON.stringify(expenses));
-    
-    showToast('✅ บันทึกรายการสำเร็จ!');
-    document.getElementById('amount').value = '';
-    document.getElementById('detail').value = '';
+    try {
+        const res = await fetch(`${API_URL}/expenses`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ groupId: currentGroupId, payer, amount, detail })
+        });
+        
+        if (!res.ok) throw new Error('Failed to add expense');
+        
+        showToast('✅ บันทึกรายการสำเร็จ!');
+        document.getElementById('amount').value = '';
+        document.getElementById('detail').value = '';
+    } catch (error) {
+        showToast('❌ เกิดข้อผิดพลาดในการบันทึก');
+    }
 }
 
-function calculateSummary() {
-    const expenses = JSON.parse(localStorage.getItem('expenses')) || [];
-    const members = JSON.parse(localStorage.getItem('groupMembers')) || [];
+async function calculateSummary() {
+    try {
+        const res = await fetch(`${API_URL}/summary/${currentGroupId}`);
+        if (!res.ok) throw new Error('Failed to fetch summary');
+        const data = await res.json();
 
-    let totalExpense = 0;
-    const paidByMember = {};
-    members.forEach(m => paidByMember[m] = 0);
+        document.getElementById('sum-total').textContent = data.totalExpense.toLocaleString();
+        document.getElementById('sum-per-person').textContent = data.perPerson.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-    expenses.forEach(e => {
-        totalExpense += e.amount;
-        if (paidByMember[e.payer] !== undefined) {
-            paidByMember[e.payer] += e.amount;
+        const list = document.getElementById('transactions-list');
+        if (data.transactions.length === 0) {
+            list.innerHTML = '<li>🎉 ไม่มีใครติดหนี้ใคร! ทุกคนจ่ายเท่ากันแล้ว</li>';
+        } else {
+            list.innerHTML = data.transactions.map(t => 
+                `<li><span><b>${t.from}</b> โอนให้ <b>${t.to}</b></span> <span class="highlight">${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿</span></li>`
+            ).join('');
         }
-    });
 
-    const perPerson = members.length > 0 ? totalExpense / members.length : 0;
-    
-    document.getElementById('sum-total').textContent = totalExpense.toLocaleString();
-    document.getElementById('sum-per-person').textContent = perPerson.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-    // Calculate who owes who
-    const balances = {};
-    members.forEach(m => {
-        balances[m] = paidByMember[m] - perPerson;
-    });
-
-    const debtors = [];
-    const creditors = [];
-
-    for (const m in balances) {
-        if (balances[m] < -0.01) debtors.push({ name: m, amount: -balances[m] });
-        else if (balances[m] > 0.01) creditors.push({ name: m, amount: balances[m] });
-    }
-
-    const transactions = [];
-    let i = 0, j = 0;
-
-    while (i < debtors.length && j < creditors.length) {
-        const debtor = debtors[i];
-        const creditor = creditors[j];
-        const amount = Math.min(debtor.amount, creditor.amount);
-
-        transactions.push({
-            from: debtor.name,
-            to: creditor.name,
-            amount: amount
-        });
-
-        debtor.amount -= amount;
-        creditor.amount -= amount;
-
-        if (debtor.amount < 0.01) i++;
-        if (creditor.amount < 0.01) j++;
-    }
-
-    const list = document.getElementById('transactions-list');
-    if (transactions.length === 0) {
-        list.innerHTML = '<li>🎉 ไม่มีใครติดหนี้ใคร! ทุกคนจ่ายเท่ากันแล้ว</li>';
-    } else {
-        list.innerHTML = transactions.map(t => 
-            `<li><span><b>${t.from}</b> โอนให้ <b>${t.to}</b></span> <span class="highlight">${t.amount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} ฿</span></li>`
+        const historyList = document.getElementById('expense-history');
+        historyList.innerHTML = data.expenses.map(e => 
+            `<li>${e.payer} จ่าย ${e.amount.toLocaleString()} ฿ (${e.detail || 'ไม่ระบุ'})</li>`
         ).join('');
+
+        switchSection('summary');
+    } catch (error) {
+        showToast('❌ ไม่สามารถดึงข้อมูลสรุปจาก Database ได้');
     }
-
-    const historyList = document.getElementById('expense-history');
-    historyList.innerHTML = expenses.map(e => 
-        `<li>${e.payer} จ่าย ${e.amount.toLocaleString()} ฿ (${e.detail || 'ไม่ระบุ'})</li>`
-    ).join('');
-
-    switchSection('summary');
 }
 
 function clearGroupAndGoHome() {
     localStorage.removeItem('currentGroupId');
     localStorage.removeItem('groupMembers');
     localStorage.removeItem('groupName');
-    localStorage.removeItem('expenses');
+    // Note: We don't delete expenses from Database here, just reset local state to create new group.
     
     currentGroupId = null;
     tempMembers = [];
