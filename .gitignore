@@ -1,10 +1,3 @@
-# node modules
 node_modules/
-
-database.json
-
- # .md files
-data_flow.md
-SKILL.md
-
-backend/.env
+.env
+*.log
