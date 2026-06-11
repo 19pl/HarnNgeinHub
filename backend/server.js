@@ -97,6 +97,5 @@ if (!process.env.VERCEL) {
     });
 }
 
-// ☁️ VERCEL DEPLOYMENT
 // Export the Express app so Vercel's Serverless Functions can consume it
 module.exports = app;
