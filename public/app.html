@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarnNgeinHub | หารเงินในกลุ่มเพื่อน</title>
+    <!-- นำเข้าฟอนต์และสไตล์ -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/app-header.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ส่วนหัวของแอปพลิเคชัน -->
+        <header>
+            <h1>💸 Split Money</h1>
+            <div class="header-actions">
+                <span class="user-greeting" id="user-greeting"></span>
+                <button id="theme-toggle">🌙 Dark Mode</button>
+                <button id="logout-btn" class="btn-logout" title="ออกจากระบบ">🚪 ออก</button>
+            </div>
+        </header>
+
+        <!-- Status Banner -->
+        <div id="status-banner" class="status-banner hidden"></div>
+
+        <!-- กล่องแจ้งเตือน (Toast) -->
+        <div id="toast" class="toast hidden"></div>
+
+
+        <!-- ส่วนที่ 1: หน้าสำหรับสร้างกลุ่มใหม่ -->
+        <section id="home-section" class="card active">
+            <!-- แผงประวัติกลุ่ม (แสดงเฉพาะ Member Mode) -->
+            <div id="group-history-section" class="hidden" style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd;">
+                <h2>ประวัติกลุ่มของคุณ ☁️</h2>
+                <div id="user-groups-list" class="user-groups-list">กำลังโหลด...</div>
+            </div>
+
+            <h2>สร้างกลุ่มใหม่</h2>
+            <div class="input-group">
+                <label>ชื่อกลุ่ม (เช่น ไปกินหมูกระทะ):</label>
+                <input type="text" id="group-name" placeholder="ระบุชื่อกลุ่ม">
+            </div>
+            <div class="input-group">
+                <label>เพิ่มสมาชิก:</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-member-name" placeholder="ชื่อสมาชิก">
+                    <button onclick="addMemberToList()" class="btn-secondary" style="width: auto; white-space: nowrap;">+ เพิ่ม</button>
+                </div>
+                <ul id="member-list-preview" class="member-list-preview"></ul>
+            </div>
+            <button onclick="createGroup()" class="btn-primary">สร้างกลุ่มเลย!</button>
+        </section>
+
+
+        <!-- ส่วนที่ 2: หน้าสำหรับจัดการและเพิ่มรายการค่าใช้จ่าย -->
+        <section id="expense-section" class="card hidden">
+            <h2 id="display-group-name">ชื่อกลุ่ม</h2>
+            
+            <div class="expense-form">
+                <h3>เพิ่มรายการจ่ายเงิน</h3>
+                <div class="input-group">
+                    <label>ใครเป็นคนจ่าย?</label>
+                    <select id="payer-select"></select>
+                </div>
+                <div class="input-group">
+                    <label>จำนวนเงิน (บาท):</label>
+                    <input type="number" id="amount" placeholder="0.00">
+                </div>
+                <div class="input-group">
+                    <label>รายละเอียด:</label>
+                    <input type="text" id="detail" placeholder="เช่น ค่าอาหาร, ค่าที่จอดรถ">
+                </div>
+                <button onclick="addExpense()" class="btn-primary">บันทึกรายการ</button>
+            </div>
+
+            <button onclick="calculateSummary()" class="btn-secondary mt-1">📊 สรุปยอดและคำนวณเงิน</button>
+            <button id="btn-share-group" onclick="shareGroup()" class="btn-secondary mt-1 hidden" style="background-color: #2196F3;">🔗 คัดลอกลิงก์แชร์กลุ่ม</button>
+            <button onclick="clearGroupAndGoHome()" class="btn-secondary mt-1" style="background-color: #ff5252;">🚪 สร้างกลุ่มใหม่ / ล้างข้อมูล</button>
+        </section>
+
+        
+        <!-- ส่วนที่ 3: หน้าสรุปผลการหารเงิน -->
+        <section id="summary-section" class="card hidden">
+            <h2>สรุปการหารเงิน</h2>
+            <div class="summary-box">
+                <p>💰 ยอดรวมทั้งหมด: <span id="sum-total" class="highlight">0</span> บาท</p>
+                <p>👨‍👩‍👧‍👦 เฉลี่ยคนละ: <span id="sum-per-person" class="highlight">0</span> บาท</p>
+            </div>
+            
+            <h3>รายการใครต้องโอนให้ใคร</h3>
+            <ul id="transactions-list" class="transactions-list"></ul>
+            
+            <h3>ประวัติการจ่าย</h3>
+            <ul id="expense-history" class="history-list"></ul>
+
+            <button onclick="location.reload()" class="btn-secondary mt-1">🏠 กลับหน้าแรก</button>
+        </section>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

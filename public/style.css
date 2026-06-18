@@ -159,3 +159,68 @@ input:-webkit-autofill:active {
     -webkit-text-fill-color: var(--text-color) !important;
     transition: background-color 5000s ease-in-out 0s;
 }
+
+/* Status Banner */
+.status-banner {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.status-banner.guest {
+    background-color: rgba(255, 152, 0, 0.15);
+    color: #f57c00;
+    border: 1px solid #ffb74d;
+}
+.status-banner.member {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #388e3c;
+    border: 1px solid #81c784;
+}
+.status-banner.hidden {
+    display: none;
+}
+
+/* Group History List */
+.user-groups-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+.group-history-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.group-history-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+.group-history-info h4 {
+    margin-bottom: 5px;
+    color: var(--text-color);
+}
+.group-history-info p {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+.group-history-actions {
+    display: flex;
+    gap: 8px;
+}
+.group-history-actions button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+}

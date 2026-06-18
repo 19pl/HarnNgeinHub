@@ -1,0 +1,46 @@
+/* ============================
+   🔝 App Header (Logout + User Greeting)
+   ============================ */
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.user-greeting {
+    font-size: 0.85rem;
+    color: var(--primary);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.btn-logout {
+    background-color: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--border);
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    white-space: nowrap;
+}
+.btn-logout:hover {
+    background-color: #ff5252;
+    color: #fff;
+    border-color: #ff5252;
+}
+
+@media (max-width: 600px) {
+    header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .header-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .user-greeting {
+        width: 100%;
+        text-align: right;
+        order: -1;
+    }
+}

@@ -21,6 +21,11 @@ const GroupSchema = new mongoose.Schema({
             message: 'Group must have between 1 and 50 members',
         },
     },
+    creatorId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null,
+    },
 }, { timestamps: true, _id: false });
 
 module.exports = mongoose.model('Group', GroupSchema);

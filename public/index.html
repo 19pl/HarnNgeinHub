@@ -4,85 +4,175 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HarnNgeinHub | หารเงินในกลุ่มเพื่อน</title>
-    <!-- นำเข้าฟอนต์และสไตล์ -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <meta name="description" content="แอปหารเงินในกลุ่มเพื่อน คำนวณค่าใช้จ่าย แบ่งจ่ายง่าย ๆ ไม่ต้องคิดเอง">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/landing.css">
 </head>
-<body>
-    <div class="container">
-        <!-- ส่วนหัวของแอปพลิเคชัน -->
-        <header>
-            <h1>💸 Split Money</h1>
-            <button id="theme-toggle">🌙 Dark Mode</button>
-        </header>
+<body class="landing-body">
 
-        <!-- กล่องแจ้งเตือน (Toast) -->
-        <div id="toast" class="toast hidden"></div>
-
-
-        <!-- ส่วนที่ 1: หน้าสำหรับสร้างกลุ่มใหม่ -->
-        <section id="home-section" class="card active">
-            <h2>สร้างกลุ่มใหม่</h2>
-            <div class="input-group">
-                <label>ชื่อกลุ่ม (เช่น ไปกินหมูกระทะ):</label>
-                <input type="text" id="group-name" placeholder="ระบุชื่อกลุ่ม">
-            </div>
-            <div class="input-group">
-                <label>เพิ่มสมาชิก:</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="new-member-name" placeholder="ชื่อสมาชิก">
-                    <button onclick="addMemberToList()" class="btn-secondary" style="width: auto; white-space: nowrap;">+ เพิ่ม</button>
-                </div>
-                <ul id="member-list-preview" class="member-list-preview"></ul>
-            </div>
-            <button onclick="createGroup()" class="btn-primary">สร้างกลุ่มเลย!</button>
-        </section>
-
-
-        <!-- ส่วนที่ 2: หน้าสำหรับจัดการและเพิ่มรายการค่าใช้จ่าย -->
-        <section id="expense-section" class="card hidden">
-            <h2 id="display-group-name">ชื่อกลุ่ม</h2>
-            
-            <div class="expense-form">
-                <h3>เพิ่มรายการจ่ายเงิน</h3>
-                <div class="input-group">
-                    <label>ใครเป็นคนจ่าย?</label>
-                    <select id="payer-select"></select>
-                </div>
-                <div class="input-group">
-                    <label>จำนวนเงิน (บาท):</label>
-                    <input type="number" id="amount" placeholder="0.00">
-                </div>
-                <div class="input-group">
-                    <label>รายละเอียด:</label>
-                    <input type="text" id="detail" placeholder="เช่น ค่าอาหาร, ค่าที่จอดรถ">
-                </div>
-                <button onclick="addExpense()" class="btn-primary">บันทึกรายการ</button>
-            </div>
-
-            <button onclick="calculateSummary()" class="btn-secondary mt-1">📊 สรุปยอดและคำนวณเงิน</button>
-            <button onclick="clearGroupAndGoHome()" class="btn-secondary mt-1" style="background-color: #ff5252;">🚪 สร้างกลุ่มใหม่ / ล้างข้อมูล</button>
-        </section>
-
-        
-        <!-- ส่วนที่ 3: หน้าสรุปผลการหารเงิน -->
-        <section id="summary-section" class="card hidden">
-            <h2>สรุปการหารเงิน</h2>
-            <div class="summary-box">
-                <p>💰 ยอดรวมทั้งหมด: <span id="sum-total" class="highlight">0</span> บาท</p>
-                <p>👨‍👩‍👧‍👦 เฉลี่ยคนละ: <span id="sum-per-person" class="highlight">0</span> บาท</p>
-            </div>
-            
-            <h3>รายการใครต้องโอนให้ใคร</h3>
-            <ul id="transactions-list" class="transactions-list"></ul>
-            
-            <h3>ประวัติการจ่าย</h3>
-            <ul id="expense-history" class="history-list"></ul>
-
-            <button onclick="location.reload()" class="btn-secondary mt-1">🏠 กลับหน้าแรก</button>
-        </section>
+    <!-- ✨ Animated Background Particles -->
+    <div class="particles" aria-hidden="true">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
     </div>
 
-    <script src="js/app.js"></script>
+    <!-- 🧭 Navigation Bar -->
+    <nav class="landing-nav">
+        <div class="nav-brand">
+            <span class="nav-logo">💸</span>
+            <span class="nav-title">HarnNgeinHub</span>
+        </div>
+        <div class="nav-actions" id="nav-actions">
+            <!-- จะถูกอัปเดตด้วย JS ตามสถานะ login -->
+            <a href="/app.html?mode=guest" class="nav-btn nav-btn-ghost" id="nav-guest">ทดลองใช้งาน</a>
+            <a href="/login.html" class="nav-btn nav-btn-ghost" id="nav-login">เข้าสู่ระบบ</a>
+            <a href="/register.html" class="nav-btn nav-btn-primary" id="nav-register">สมัครฟรี</a>
+        </div>
+    </nav>
+
+    <!-- 🏠 Hero Section -->
+    <main class="landing-hero">
+        <div class="hero-content">
+            <div class="hero-badge">✨ ฟรี ไม่มีค่าใช้จ่าย</div>
+            <h1 class="hero-title">
+                หารเงินกับเพื่อน<br>
+                <span class="gradient-text">ง่ายกว่าที่คิด</span>
+            </h1>
+            <p class="hero-subtitle">
+                ไม่ต้องมานั่งคิดเองว่าใครต้องจ่ายเท่าไหร่ แค่บันทึกรายการ
+                แล้วระบบจะคำนวณให้ทุกอย่าง — สร้างกลุ่ม เพิ่มค่าใช้จ่าย สรุปยอด เสร็จ!
+            </p>
+            <div class="hero-buttons">
+                <a href="/register.html" class="hero-btn hero-btn-primary" id="hero-cta">
+                    เข้าสู่ระบบ / สมัครสมาชิก →
+                </a>
+                <a href="/app.html?mode=guest" class="hero-btn hero-btn-ghost">
+                    ทดลองใช้งานทันที (Guest)
+                </a>
+            </div>
+
+            <!-- Stats -->
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">100%</span>
+                    <span class="stat-label">ฟรี</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number">3 ขั้นตอน</span>
+                    <span class="stat-label">ใช้ง่าย</span>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat">
+                    <span class="stat-number">ปลอดภัย</span>
+                    <span class="stat-label">เข้ารหัสข้อมูล</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Card Preview -->
+        <div class="hero-visual">
+            <div class="preview-card">
+                <div class="preview-header">
+                    <span class="preview-dot red"></span>
+                    <span class="preview-dot yellow"></span>
+                    <span class="preview-dot green"></span>
+                    <span class="preview-title">กลุ่ม: ไปกินหมูกระทะ 🍖</span>
+                </div>
+                <div class="preview-body">
+                    <div class="preview-row">
+                        <span>🧑 สมชาย จ่าย</span>
+                        <span class="amount-tag">350 ฿</span>
+                    </div>
+                    <div class="preview-row">
+                        <span>👩 สมหญิง จ่าย</span>
+                        <span class="amount-tag">200 ฿</span>
+                    </div>
+                    <div class="preview-row">
+                        <span>🧑‍💻 เจมส์ จ่าย</span>
+                        <span class="amount-tag">0 ฿</span>
+                    </div>
+                    <div class="preview-divider"></div>
+                    <div class="preview-row summary-row">
+                        <span>💰 เฉลี่ยคนละ</span>
+                        <span class="amount-tag highlight-tag">183.33 ฿</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ⭐ Features Section -->
+    <section class="features-section" id="features">
+        <h2 class="section-title">ทำไมต้องใช้ HarnNgeinHub?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>สร้างกลุ่ม</h3>
+                <p>เพิ่มสมาชิกง่าย ๆ ไม่จำกัดจำนวนกลุ่ม</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3>บันทึกรายจ่าย</h3>
+                <p>ใครจ่ายอะไรเท่าไหร่ บันทึกแล้วจบ ไม่ต้องจำ</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧮</div>
+                <h3>คำนวณอัตโนมัติ</h3>
+                <p>ระบบคำนวณให้ว่าใครต้องโอนให้ใครเท่าไหร่</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>ปลอดภัย</h3>
+                <p>ข้อมูลเข้ารหัส ใช้ JWT Token ปกป้องทุกคำขอ</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 📖 How It Works -->
+    <section class="steps-section">
+        <h2 class="section-title">ใช้งานง่ายแค่ 3 ขั้นตอน</h2>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <h3>สมัคร / เข้าสู่ระบบ</h3>
+                <p>ใช้อีเมล + รหัสผ่าน หรือบัญชี Google เพื่อเข้าสู่ระบบ</p>
+            </div>
+            <div class="step-connector">→</div>
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <h3>สร้างกลุ่มและบันทึก</h3>
+                <p>ตั้งชื่อกลุ่ม เพิ่มสมาชิก แล้วบันทึกค่าใช้จ่ายแต่ละรายการ</p>
+            </div>
+            <div class="step-connector">→</div>
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <h3>สรุปยอด!</h3>
+                <p>กดปุ่มสรุป ระบบจะคำนวณให้ว่าใครต้องโอนให้ใคร</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 🎯 CTA Footer -->
+    <section class="cta-section">
+        <h2>พร้อมเริ่มหารเงินกับเพื่อนหรือยัง?</h2>
+        <p>สมัครฟรี หรือทดลองใช้งานโดยไม่เข้าสู่ระบบได้ทันที</p>
+        <div class="hero-buttons" style="justify-content: center; margin-top: 1.5rem;">
+            <a href="/register.html" class="hero-btn hero-btn-primary" id="footer-cta">สมัครเลย — ฟรี! 🎉</a>
+            <a href="/app.html?mode=guest" class="hero-btn hero-btn-ghost">ใช้งานแบบ Guest</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <p>© 2026 HarnNgeinHub — Made with 💚 for friends</p>
+    </footer>
+
+    <script src="js/landing.js"></script>
 </body>
 </html>

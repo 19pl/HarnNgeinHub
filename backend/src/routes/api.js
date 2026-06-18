@@ -12,6 +12,20 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // ตรวจสอบว่า request มี token ของกลุ่มที่ถูกต้อง
 // และ groupId ใน token ตรงกับ groupId ที่ร้องขอ
 function requireGroupToken(req, res, next) {
+    // If it's a browser request with userToken cookie, check if they are the creator
+    const userToken = req.cookies?.userToken;
+    const groupIdFromParam = req.params.groupId || req.body.groupId;
+    
+    if (userToken) {
+        try {
+            const decodedUser = jwt.verify(userToken, JWT_SECRET);
+            // We will check creator in the route if needed, or we attach userId
+            req.userId = decodedUser.sub;
+            req.groupId = groupIdFromParam;
+            return next();
+        } catch (err) {}
+    }
+
     const authHeader = req.headers['authorization'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Unauthorized: Missing token' });
@@ -19,8 +33,6 @@ function requireGroupToken(req, res, next) {
     const token = authHeader.split(' ')[1];
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        // ตรวจสอบว่า token ของกลุ่มนี้จริงๆ
-        const groupIdFromParam = req.params.groupId || req.body.groupId;
         if (decoded.groupId !== groupIdFromParam) {
             return res.status(403).json({ error: 'Forbidden: Token does not match this group' });
         }
@@ -63,7 +75,18 @@ router.post('/groups', async (req, res) => {
             return res.status(400).json({ error: 'At least one valid member name is required' });
         }
 
-        const newGroup = new Group({ name, members: sanitizedMembers });
+        let creatorId = null;
+        const userToken = req.cookies?.userToken || (req.headers.authorization || '').replace(/^Bearer\s+/, '');
+        if (userToken) {
+            try {
+                const decodedUser = jwt.verify(userToken, JWT_SECRET);
+                creatorId = decodedUser.sub;
+            } catch (err) {
+                // Ignore invalid token
+            }
+        }
+
+        const newGroup = new Group({ name, members: sanitizedMembers, creatorId });
         await newGroup.save();
 
         // ออก JWT token สำหรับกลุ่มนี้ (หมดอายุ 7 วัน)
@@ -123,6 +146,11 @@ router.post('/expenses', (req, res, next) => {
         if (!group) {
             return res.status(404).json({ error: 'Group not found' });
         }
+        
+        if (req.userId && group.creatorId?.toString() !== req.userId) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
+
         // ตรวจสอบว่า payer เป็นสมาชิกในกลุ่ม
         if (!group.members.includes(payer)) {
             return res.status(400).json({ error: 'Payer must be a member of the group' });
@@ -148,6 +176,10 @@ router.get('/summary/:groupId', requireGroupToken, async (req, res) => {
 
         const group = await Group.findById(groupId);
         if (!group) return res.status(404).json({ error: 'Group not found' });
+
+        if (req.userId && group.creatorId?.toString() !== req.userId) {
+            return res.status(403).json({ error: 'Forbidden' });
+        }
 
         const expenses = await Expense.find({ groupId });
 
@@ -198,6 +230,50 @@ router.get('/summary/:groupId', requireGroupToken, async (req, res) => {
         res.json({ totalExpense, perPerson, transactions, expenses });
     } catch (error) {
         console.error('Error getting summary:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// ============================
+// 📌 4. Get User's Group History
+// ============================
+// GET /api/user/groups — 🔐 Requires User Auth
+router.get('/user/groups', async (req, res) => {
+    const token = req.cookies?.userToken || (req.headers.authorization || '').replace(/^Bearer\s+/, '');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const groups = await Group.find({ creatorId: decoded.sub }).sort({ createdAt: -1 });
+        res.json({ groups });
+    } catch (err) {
+        res.status(401).json({ error: 'Unauthorized' });
+    }
+});
+
+// ============================
+// 📌 5. Delete a Group
+// ============================
+// DELETE /api/groups/:groupId — 🔐 Requires User Auth & Creator Role
+router.delete('/groups/:groupId', async (req, res) => {
+    const token = req.cookies?.userToken || (req.headers.authorization || '').replace(/^Bearer\s+/, '');
+    if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const group = await Group.findById(req.params.groupId);
+        if (!group) return res.status(404).json({ error: 'Group not found' });
+        
+        if (group.creatorId?.toString() !== decoded.sub) {
+            return res.status(403).json({ error: 'Forbidden: You are not the creator of this group' });
+        }
+
+        await Group.findByIdAndDelete(req.params.groupId);
+        await Expense.deleteMany({ groupId: req.params.groupId });
+        
+        res.json({ success: true });
+    } catch (err) {
+        console.error('Error deleting group:', err);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
